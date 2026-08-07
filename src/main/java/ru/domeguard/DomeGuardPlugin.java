@@ -14,8 +14,8 @@ public final class DomeGuardPlugin extends JavaPlugin {
         curseManager = new CurseManager(this);
         domeManager = new DomeManager(this);
         damageManager = new DamageManager(this, domeManager, curseManager);
-        getCommand("dome").setExecutor(new DomeCommand(domeManager));
         DomeMenu menu = new DomeMenu(this, domeManager, damageManager);
+        getCommand("dome").setExecutor(new DomeCommand(domeManager, menu));
         Bukkit.getPluginManager().registerEvents(menu, this);
         Bukkit.getPluginManager().registerEvents(new RespawnListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BoundaryListener(this, curseManager), this);

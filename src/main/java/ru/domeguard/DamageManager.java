@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.EnumSet;
 
 public final class DamageManager {
     private final DomeGuardPlugin plugin;
@@ -84,7 +85,15 @@ public final class DamageManager {
     }
 
     private void clearDomeEffects(Player p) {
-        p.getActivePotionEffects().forEach(e -> p.removePotionEffect(e.getType()));
+        for (PotionEffectType type : EnumSet.of(
+                PotionEffectType.NAUSEA,
+                PotionEffectType.SLOWNESS,
+                PotionEffectType.WEAKNESS,
+                PotionEffectType.MINING_FATIGUE,
+                PotionEffectType.DARKNESS,
+                PotionEffectType.BLINDNESS)) {
+            p.removePotionEffect(type);
+        }
     }
     private void playWarden(Player p, double progress, int min, int max) {
         soundTimer += 5;

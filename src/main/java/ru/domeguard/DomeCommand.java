@@ -7,9 +7,11 @@ import org.bukkit.entity.Player;
 
 public final class DomeCommand implements CommandExecutor {
     private final DomeManager dome;
+    private final DomeMenu menu;
 
-    public DomeCommand(DomeManager dome) {
+    public DomeCommand(DomeManager dome, DomeMenu menu) {
         this.dome = dome;
+        this.menu = menu;
     }
 
     @Override
@@ -18,13 +20,11 @@ public final class DomeCommand implements CommandExecutor {
             sender.sendMessage("Команду может использовать только игрок.");
             return true;
         }
-
         if (!player.hasPermission("dome.admin")) {
             player.sendMessage("§cУ вас нет прав.");
             return true;
         }
-
-        new DomeMenu(dome.getPlugin(), dome).open(player);
+        menu.open(player);
         return true;
     }
 }
