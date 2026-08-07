@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public final class DomeMenu implements Listener {
-    public static final String TITLE = "§8☠ §5Настройка купола v1.2";
+    public static final String TITLE = "§8☠ §5Настройка купола v1.3";
 
     private final DomeGuardPlugin plugin;
     private final DomeManager dome;
@@ -61,11 +61,12 @@ public final class DomeMenu implements Listener {
                 "§7Y: §f" + fmt(dome.getMinY()) + " ... " + fmt(dome.getMaxY())));
 
         inv.setItem(22, item(Material.WARDEN_SPAWN_EGG, "§3Эффект Вардена",
-                "§7За границей включаются:",
-                "§f• сильная Darkness",
-                "§f• Blindness",
-                "§f• звуки Вардена",
-                "§f• нарастающий урон"));
+                "§7За границей эффекты нарастают постепенно:",
+                "§f• 0–10: тошнота, замедление, слабость",
+                "§f• 0–10: усталость от добычи",
+                "§f• 10–30: Darkness + Blindness",
+                "§f• звук сердца Вардена усиливается",
+                "§f• 31 блок: смерть"));
 
         inv.setItem(31, item(Material.BARRIER, "§cЗакрыть"));
         player.openInventory(inv);
