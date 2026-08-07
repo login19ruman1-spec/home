@@ -10,7 +10,8 @@ public final class DomeManager {
     private String worldName;
     private double centerX;
     private double centerZ;
-    private double radius;
+    private double radiusX;
+    private double radiusZ;
     private double minY;
     private double maxY;
 
@@ -25,20 +26,29 @@ public final class DomeManager {
         worldName = c.getString("dome.world", "world");
         centerX = c.getDouble("dome.center-x", 0);
         centerZ = c.getDouble("dome.center-z", 0);
-        radius = Math.max(1.0, c.getDouble("dome.radius", 500));
+
+        // v1.2: independent horizontal semi-axes.
+        radiusX = Math.max(1.0, c.getDouble("dome.radius-x", c.getDouble("dome.radius", 500)));
+        radiusZ = Math.max(1.0, c.getDouble("dome.radius-z", c.getDouble("dome.radius", 500)));
+
         minY = c.getDouble("dome.min-y", -64);
         maxY = c.getDouble("dome.max-y", 320);
 
         if (maxY <= minY) {
             maxY = minY + 1;
         }
+
+        save();
     }
 
     public void save() {
         plugin.getConfig().set("dome.world", worldName);
         plugin.getConfig().set("dome.center-x", centerX);
         plugin.getConfig().set("dome.center-z", centerZ);
-        plugin.getConfig().set("dome.radius", radius);
+        plugin.getConfig().set("dome.radius-x", radiusX);
+        plugin.getConfig().set("dome.radius-z", radiusZ);
+        // Keep old key for compatibility with old configs.
+        plugin.getConfig().set("dome.radius", Math.max(radiusX, radiusZ));
         plugin.getConfig().set("dome.min-y", minY);
         plugin.getConfig().set("dome.max-y", maxY);
         plugin.saveConfig();
@@ -49,34 +59,52 @@ public final class DomeManager {
     }
 
     public boolean isInside(Location loc) {
-        World world = loc.getWorld();
-        if (world == null || !world.getName().equals(worldName)) {
+        if (!sameWorld(loc)) {
             return true;
         }
 
         double dx = loc.getX() - centerX;
         double dz = loc.getZ() - centerZ;
-        double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+        double normalizedX = dx / radiusX;
+        double normalizedZ = dz / radiusZ;
+        double horizontalValue = normalizedX * normalizedX + normalizedZ * normalizedZ;
 
-        return horizontalDistance <= radius
+        return horizontalValue <= 1.0
                 && loc.getY() >= minY
                 && loc.getY() <= maxY;
     }
 
+    /**
+     * Returns the approximate number of blocks outside the nearest boundary.
+     * For the horizontal boundary this uses the ellipse's local radial scale,
+     * so X and Z can have different sizes.
+     */
     public double distanceOutside(Location loc) {
-        if (loc.getWorld() == null || !loc.getWorld().getName().equals(worldName)) {
+        if (!sameWorld(loc)) {
             return 0.0;
         }
 
         double dx = loc.getX() - centerX;
         double dz = loc.getZ() - centerZ;
-        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        double normalizedDistance = Math.sqrt(
+                (dx * dx) / (radiusX * radiusX)
+                        + (dz * dz) / (radiusZ * radiusZ)
+        );
 
-        double side = Math.max(0.0, horizontal - radius);
+        // Convert normalized distance to an approximate block distance using
+        // the nearest local horizontal radius. This keeps damage progressive.
+        double localRadius = Math.min(radiusX, radiusZ);
+        double horizontal = Math.max(0.0, (normalizedDistance - 1.0) * localRadius);
+
         double top = Math.max(0.0, loc.getY() - maxY);
         double bottom = Math.max(0.0, minY - loc.getY());
 
-        return Math.max(side, Math.max(top, bottom));
+        return Math.max(horizontal, Math.max(top, bottom));
+    }
+
+    private boolean sameWorld(Location loc) {
+        World world = loc.getWorld();
+        return world != null && world.getName().equals(worldName);
     }
 
     public void setFromLocation(Location loc) {
@@ -92,12 +120,18 @@ public final class DomeManager {
     public String getWorldName() { return worldName; }
     public double getCenterX() { return centerX; }
     public double getCenterZ() { return centerZ; }
-    public double getRadius() { return radius; }
+    public double getRadiusX() { return radiusX; }
+    public double getRadiusZ() { return radiusZ; }
     public double getMinY() { return minY; }
     public double getMaxY() { return maxY; }
 
-    public void setRadius(double value) {
-        radius = Math.max(1.0, value);
+    public void setRadiusX(double value) {
+        radiusX = Math.max(1.0, value);
+        save();
+    }
+
+    public void setRadiusZ(double value) {
+        radiusZ = Math.max(1.0, value);
         save();
     }
 

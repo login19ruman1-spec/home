@@ -20,7 +20,7 @@ public final class DomeGuardPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new RespawnListener(this), this);
 
         damageManager.start();
-        getLogger().info("DomeGuard v1.1.0 enabled.");
+        getLogger().info("DomeGuard v1.2.0 enabled.");
     }
 
     @Override

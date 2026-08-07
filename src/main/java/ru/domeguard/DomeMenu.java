@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public final class DomeMenu implements Listener {
-    public static final String TITLE = "§8☠ §5Настройка купола";
+    public static final String TITLE = "§8☠ §5Настройка купола v1.2";
 
     private final DomeGuardPlugin plugin;
     private final DomeManager dome;
@@ -25,35 +25,49 @@ public final class DomeMenu implements Listener {
     }
 
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
+        Inventory inv = Bukkit.createInventory(null, 36, TITLE);
 
         inv.setItem(10, item(Material.COMPASS, "§bЦентр",
                 "§7Установить центр на вашей позиции",
                 "§fX: " + fmt(dome.getCenterX()),
-                "§fZ: " + fmt(dome.getCenterZ())));
+                "§fZ: " + fmt(dome.getCenterZ()),
+                "§8Мир: " + dome.getWorldName()));
 
-        inv.setItem(11, item(Material.ENDER_EYE, "§dРадиус",
-                "§7ЛКМ: +10",
-                "§7ПКМ: -10",
-                "§fСейчас: " + fmt(dome.getRadius())));
+        inv.setItem(11, item(Material.ENDER_PEARL, "§dРадиус по X",
+                "§7ЛКМ: +10 блоков",
+                "§7ПКМ: -10 блоков",
+                "§fСейчас: " + fmt(dome.getRadiusX())));
 
-        inv.setItem(12, item(Material.SPYGLASS, "§aВерхняя граница",
+        inv.setItem(12, item(Material.ENDER_EYE, "§5Радиус по Z",
+                "§7ЛКМ: +10 блоков",
+                "§7ПКМ: -10 блоков",
+                "§fСейчас: " + fmt(dome.getRadiusZ())));
+
+        inv.setItem(13, item(Material.SPYGLASS, "§aВерхняя граница Y",
                 "§7ЛКМ: +10",
                 "§7ПКМ: -10",
                 "§fСейчас: " + fmt(dome.getMaxY())));
 
-        inv.setItem(13, item(Material.BEDROCK, "§cНижняя граница",
+        inv.setItem(14, item(Material.BEDROCK, "§cНижняя граница Y",
                 "§7ЛКМ: +10",
                 "§7ПКМ: -10",
                 "§fСейчас: " + fmt(dome.getMinY())));
 
-        inv.setItem(15, item(Material.PAPER, "§eТекущие настройки",
+        inv.setItem(16, item(Material.PAPER, "§eТекущие настройки",
                 "§7Мир: §f" + dome.getWorldName(),
                 "§7Центр: §f" + fmt(dome.getCenterX()) + ", " + fmt(dome.getCenterZ()),
-                "§7Радиус: §f" + fmt(dome.getRadius()),
+                "§7Радиус X: §f" + fmt(dome.getRadiusX()),
+                "§7Радиус Z: §f" + fmt(dome.getRadiusZ()),
                 "§7Y: §f" + fmt(dome.getMinY()) + " ... " + fmt(dome.getMaxY())));
 
-        inv.setItem(22, item(Material.BARRIER, "§cЗакрыть"));
+        inv.setItem(22, item(Material.WARDEN_SPAWN_EGG, "§3Эффект Вардена",
+                "§7За границей включаются:",
+                "§f• сильная Darkness",
+                "§f• Blindness",
+                "§f• звуки Вардена",
+                "§f• нарастающий урон"));
+
+        inv.setItem(31, item(Material.BARRIER, "§cЗакрыть"));
         player.openInventory(inv);
     }
 
@@ -76,17 +90,21 @@ public final class DomeMenu implements Listener {
             }
             case 11 -> {
                 double delta = event.isLeftClick() ? 10.0 : -10.0;
-                dome.setRadius(dome.getRadius() + delta);
+                dome.setRadiusX(dome.getRadiusX() + delta);
             }
             case 12 -> {
                 double delta = event.isLeftClick() ? 10.0 : -10.0;
-                dome.setMaxY(dome.getMaxY() + delta);
+                dome.setRadiusZ(dome.getRadiusZ() + delta);
             }
             case 13 -> {
                 double delta = event.isLeftClick() ? 10.0 : -10.0;
+                dome.setMaxY(dome.getMaxY() + delta);
+            }
+            case 14 -> {
+                double delta = event.isLeftClick() ? 10.0 : -10.0;
                 dome.setMinY(dome.getMinY() + delta);
             }
-            case 22 -> {
+            case 31 -> {
                 player.closeInventory();
                 return;
             }

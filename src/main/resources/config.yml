@@ -3,24 +3,40 @@ dome:
   world: world
   center-x: 0.0
   center-z: 0.0
+
+  # v1.2: independent horizontal semi-axes. This makes an ellipse instead of a circle.
+  radius-x: 500.0
+  radius-z: 500.0
+
+  # Old key kept for compatibility with v1.1 configs.
   radius: 500.0
+
   min-y: -64.0
   max-y: 320.0
 
 damage:
   # Damage is applied every 10 ticks (0.5 sec).
   warning-distance: 0.0
+
+  # Warden-like darkness starts this far outside the boundary.
   darkness-distance: 8.0
+
+  # Death zone starts this far outside the boundary.
   death-distance: 15.0
 
-  # Damage per second at the warning boundary.
+  # Damage grows with every block outside the dome.
   damage-per-second: 1.0
-
-  # Hard cap for damage per second.
   max-damage-per-second: 20.0
 
   nausea-amplifier: 0
+
+  # Darkness has no useful visual amplifier in Minecraft, so a strong
+  # Blindness layer is also applied for the Warden-like blackout.
   darkness-amplifier: 0
+  blindness-amplifier: 2
+
+  # Warden sounds every 40 ticks = 2 seconds while deep outside.
+  warden-sound-every-ticks: 40
 
 respawn:
   # 60 ticks = 3 seconds.

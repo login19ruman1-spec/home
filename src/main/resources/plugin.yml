@@ -1,9 +1,9 @@
 name: DomeGuard
-version: 1.1.0
+version: 1.2.0
 main: ru.domeguard.DomeGuardPlugin
 api-version: '1.21'
 author: DomeGuard
-description: Configurable death dome for Purpur/Paper 1.21.4
+description: Configurable death dome with independent X/Z axes and Warden-like effects for Purpur/Paper 1.21.4
 
 commands:
   dome:

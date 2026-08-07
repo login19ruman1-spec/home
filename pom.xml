@@ -5,7 +5,7 @@
 
     <groupId>ru.domeguard</groupId>
     <artifactId>DomeGuard</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
@@ -29,7 +29,7 @@
     </dependencies>
 
     <build>
-        <finalName>DomeGuard-1.1.0</finalName>
+        <finalName>DomeGuard-1.2.0</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
