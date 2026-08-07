@@ -1,28 +1,18 @@
-# DomeGuard v1.3.0
+# DomeGuard v1.4.0
 
-Плагин для Purpur/Paper 1.21.4.
+Purpur/Paper 1.21.4 plugin: configurable elliptical dome (X/Z), Y limits, gradual Warden-style effects, damage immunity selector, sleep curse after crossing the lethal boundary, and Suspicious Stew cure.
 
-## Что изменено в v1.3
+## Commands
+`/dome` — admin GUI (`dome.admin`).
 
-- Горизонтальная граница имеет независимые радиусы X и Z.
-- 0–10 блоков за границей: эффекты постепенно усиливаются.
-- Добавлены Nausea, Slowness, Weakness и Mining Fatigue.
-- 10–30 блоков: Darkness + Blindness усиливаются ступенчато.
-- Сердцебиение Вардена становится чаще и громче по мере приближения к 31 блоку.
-- Урон растёт плавно, а не резкими скачками.
-- На 31-м блоке игрок умирает.
-- Респавн по умолчанию через 3 секунды.
+## Boundary
+0–10 blocks: nausea, slowness, weakness, mining fatigue gradually increase.
+10–50 blocks: darkness/blindness and Warden sounds progressively intensify.
+51+ blocks: cursed for sleep; non-immune players die.
+Returning to 41 blocks outside-or-less clears potion effects; implementation clears all active potion effects when the player is back inside the dome within the configured clear distance.
 
-## GUI
+## Sleep curse
+Crossing the lethal distance marks the player permanently (UUID persisted in `plugins/DomeGuard/players.yml`). Beds are blocked until the player consumes Suspicious Stew.
 
-`/dome`
-
-- Центр
-- Радиус X
-- Радиус Z
-- Верхняя Y
-- Нижняя Y
-
-## Сборка
-
-GitHub Actions автоматически собирает `DomeGuard-1.3.0.jar`.
+## Damage immunity
+`/dome` → `Иммунитет к урону` → click a player. The selected player receives all boundary effects and the sleep curse, but does not receive boundary damage or lethal death from the dome.

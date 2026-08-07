@@ -3,47 +3,35 @@ dome:
   world: world
   center-x: 0.0
   center-z: 0.0
-
-  # Independent horizontal semi-axes. X and Z can have different sizes.
   radius-x: 500.0
   radius-z: 500.0
-
-  # Kept for compatibility with old configs.
   radius: 500.0
-
   min-y: -64.0
   max-y: 320.0
 
 damage:
-  # Effects start immediately outside the boundary.
   warning-distance: 0.0
-
-  # Phase 1: 0..10 blocks outside.
   first-phase-end: 10.0
-
-  # Phase 2: 10..30 blocks outside. Darkness grows stronger here.
   darkness-start: 10.0
-  death-distance: 31.0
-
-  # Damage is calculated every 5 ticks (0.25 sec) and grows smoothly with distance.
+  death-distance: 51.0
+  clear-effects-distance: 41.0
   damage-per-second-at-boundary: 0.5
-  damage-per-second-at-30-blocks: 18.0
-
-  # Extra effects during the first phase.
+  damage-per-second-at-death: 20.0
   nausea-max-amplifier: 2
   slowness-max-amplifier: 2
   weakness-max-amplifier: 1
   mining-fatigue-max-amplifier: 1
-
-  # Darkness itself has no useful visual amplifier in Minecraft.
-  # Blindness is layered on top and its amplifier grows during 10..30 blocks.
   darkness-amplifier: 0
   blindness-max-amplifier: 3
-
-  # Warden heartbeat becomes more frequent as the player gets closer to death.
   warden-sound-min-interval-ticks: 8
   warden-sound-max-interval-ticks: 40
 
+damage-immune-players: []
+
+sleep-curse:
+  enabled: true
+  trigger-distance: 51.0
+  remove-with-suspicious-stew: true
+
 respawn:
-  # 60 ticks = 3 seconds.
   delay-ticks: 60

@@ -7,156 +7,93 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 public final class DamageManager {
     private final DomeGuardPlugin plugin;
     private final DomeManager dome;
+    private final CurseManager curse;
+    private final Set<UUID> damageImmune = new HashSet<>();
     private BukkitTask task;
     private int soundTimer;
 
-    public DamageManager(DomeGuardPlugin plugin, DomeManager dome) {
-        this.plugin = plugin;
-        this.dome = dome;
+    public DamageManager(DomeGuardPlugin plugin, DomeManager dome, CurseManager curse) {
+        this.plugin = plugin; this.dome = dome; this.curse = curse;
+        damageImmune.addAll(plugin.getConfig().getStringList("damage-immune-players").stream().map(s -> { try { return UUID.fromString(s); } catch (Exception e) { return null; } }).filter(java.util.Objects::nonNull).toList());
     }
 
-    public void start() {
-        // 5 ticks = 0.25 second. This makes the progression feel much smoother.
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 5L, 5L);
-    }
-
-    public void stop() {
-        if (task != null) {
-            task.cancel();
-        }
-    }
+    public void start() { task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 5L, 5L); }
+    public void stop() { if (task != null) task.cancel(); }
+    public boolean isDamageImmune(UUID id) { return damageImmune.contains(id); }
+    public int getDamageImmuneCount() { return damageImmune.size(); }
+    public void toggleDamageImmunity(UUID id) { if (!damageImmune.remove(id)) damageImmune.add(id); saveImmune(); }
+    private void saveImmune() { plugin.getConfig().set("damage-immune-players", damageImmune.stream().map(UUID::toString).toList()); plugin.saveConfig(); }
 
     private void tick() {
-        if (!dome.isEnabled()) {
-            return;
-        }
-
+        if (!dome.isEnabled()) return;
         double warning = plugin.getConfig().getDouble("damage.warning-distance", 0.0);
-        double firstPhaseEnd = plugin.getConfig().getDouble("damage.first-phase-end", 10.0);
+        double firstEnd = plugin.getConfig().getDouble("damage.first-phase-end", 10.0);
         double darknessStart = plugin.getConfig().getDouble("damage.darkness-start", 10.0);
-        double deathDistance = plugin.getConfig().getDouble("damage.death-distance", 31.0);
-
+        double deathDistance = plugin.getConfig().getDouble("damage.death-distance", 51.0);
+        double clearDistance = plugin.getConfig().getDouble("damage.clear-effects-distance", 41.0);
         double boundaryDps = plugin.getConfig().getDouble("damage.damage-per-second-at-boundary", 0.5);
-        double maxDps = plugin.getConfig().getDouble("damage.damage-per-second-at-30-blocks", 18.0);
-
+        double maxDps = plugin.getConfig().getDouble("damage.damage-per-second-at-death", 20.0);
         int nauseaMax = plugin.getConfig().getInt("damage.nausea-max-amplifier", 2);
         int slownessMax = plugin.getConfig().getInt("damage.slowness-max-amplifier", 2);
         int weaknessMax = plugin.getConfig().getInt("damage.weakness-max-amplifier", 1);
-        int miningFatigueMax = plugin.getConfig().getInt("damage.mining-fatigue-max-amplifier", 1);
-        int darknessAmplifier = plugin.getConfig().getInt("damage.darkness-amplifier", 0);
+        int fatigueMax = plugin.getConfig().getInt("damage.mining-fatigue-max-amplifier", 1);
         int blindnessMax = plugin.getConfig().getInt("damage.blindness-max-amplifier", 3);
+        int minInterval = Math.max(5, plugin.getConfig().getInt("damage.warden-sound-min-interval-ticks", 8));
+        int maxInterval = Math.max(minInterval, plugin.getConfig().getInt("damage.warden-sound-max-interval-ticks", 40));
 
-        int minSoundInterval = Math.max(5,
-                plugin.getConfig().getInt("damage.warden-sound-min-interval-ticks", 8));
-        int maxSoundInterval = Math.max(minSoundInterval,
-                plugin.getConfig().getInt("damage.warden-sound-max-interval-ticks", 40));
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.isDead() || dome.isInside(player.getLocation())) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p.isDead()) continue;
+            if (dome.isInside(p.getLocation())) {
+                double d = dome.distanceOutside(p.getLocation());
+                if (d > 0 && d <= clearDistance) clearDomeEffects(p);
                 continue;
             }
-
-            double distance = dome.distanceOutside(player.getLocation());
-            if (distance < warning) {
-                continue;
-            }
-
-            // 31 blocks = death. Check this before applying more effects.
+            double distance = dome.distanceOutside(p.getLocation());
+            if (distance < warning) continue;
             if (distance >= deathDistance) {
-                player.setHealth(0.0);
+                curse.curse(p);
+                if (!isDamageImmune(p.getUniqueId())) p.setHealth(0.0);
                 continue;
             }
-
-            // t = 0 at the boundary, 1 at 10 blocks.
-            double phaseOne = clamp((distance - warning) / Math.max(0.001, firstPhaseEnd - warning));
-
-            // 0..10 blocks: nausea + slow + weakness + mining fatigue grow gradually.
-            int nauseaAmp = scaledAmplifier(phaseOne, nauseaMax);
-            int slownessAmp = scaledAmplifier(phaseOne, slownessMax);
-            int weaknessAmp = scaledAmplifier(phaseOne, weaknessMax);
-            int miningFatigueAmp = scaledAmplifier(phaseOne, miningFatigueMax);
-
-            addEffect(player, PotionEffectType.NAUSEA, nauseaAmp, 12);
-            addEffect(player, PotionEffectType.SLOWNESS, slownessAmp, 12);
-            addEffect(player, PotionEffectType.WEAKNESS, weaknessAmp, 12);
-            addEffect(player, PotionEffectType.MINING_FATIGUE, miningFatigueAmp, 12);
-
+            double phaseOne = clamp((distance - warning) / Math.max(0.001, firstEnd - warning));
+            addEffect(p, PotionEffectType.NAUSEA, scaled(phaseOne, nauseaMax), 12);
+            addEffect(p, PotionEffectType.SLOWNESS, scaled(phaseOne, slownessMax), 12);
+            addEffect(p, PotionEffectType.WEAKNESS, scaled(phaseOne, weaknessMax), 12);
+            addEffect(p, PotionEffectType.MINING_FATIGUE, scaled(phaseOne, fatigueMax), 12);
             if (distance >= darknessStart) {
-                // 10..30 blocks. The visual blackout is layered and becomes stronger.
-                double darknessProgress = clamp((distance - darknessStart)
-                        / Math.max(0.001, deathDistance - darknessStart));
-
-                int blindnessAmp = scaledAmplifier(darknessProgress, blindnessMax);
-                addEffect(player, PotionEffectType.DARKNESS, darknessAmplifier, 12);
-                addEffect(player, PotionEffectType.BLINDNESS, blindnessAmp, 12);
-
-                // Extra Warden-like pressure in the deep zone.
-                int slownessDeep = Math.max(slownessAmp,
-                        scaledAmplifier(darknessProgress, slownessMax + 1));
-                int weaknessDeep = Math.max(weaknessAmp,
-                        scaledAmplifier(darknessProgress, weaknessMax + 1));
-                addEffect(player, PotionEffectType.SLOWNESS, slownessDeep, 12);
-                addEffect(player, PotionEffectType.WEAKNESS, weaknessDeep, 12);
-
-                playWardenHeartbeat(player, darknessProgress, minSoundInterval, maxSoundInterval);
+                double deep = clamp((distance - darknessStart) / Math.max(0.001, deathDistance - darknessStart));
+                addEffect(p, PotionEffectType.DARKNESS, 0, 12);
+                addEffect(p, PotionEffectType.BLINDNESS, scaled(deep, blindnessMax), 12);
+                addEffect(p, PotionEffectType.SLOWNESS, Math.max(scaled(phaseOne, slownessMax), scaled(deep, slownessMax + 1)), 12);
+                addEffect(p, PotionEffectType.WEAKNESS, Math.max(scaled(phaseOne, weaknessMax), scaled(deep, weaknessMax + 1)), 12);
+                playWarden(p, deep, minInterval, maxInterval);
             }
-
-            // Smooth damage curve: low at the boundary, rapidly increasing near 30 blocks.
-            double progressToDeath = clamp((distance - warning)
-                    / Math.max(0.001, deathDistance - warning));
-            double curved = Math.pow(progressToDeath, 2.0);
-            double dps = boundaryDps + (maxDps - boundaryDps) * curved;
-            double damageThisTick = dps * 0.25; // task runs every 0.25 sec
-
-            if (damageThisTick > 0.0) {
-                player.damage(damageThisTick);
+            if (!isDamageImmune(p.getUniqueId())) {
+                double progress = clamp((distance - warning) / Math.max(0.001, deathDistance - warning));
+                double dps = boundaryDps + (maxDps - boundaryDps) * Math.pow(progress, 2.0);
+                p.damage(dps * 0.25);
             }
         }
     }
 
-    private void playWardenHeartbeat(Player player, double progress, int minInterval, int maxInterval) {
-        // The heartbeat gets faster and louder from 10 to 30 blocks.
-        int interval = (int) Math.round(maxInterval - (maxInterval - minInterval) * progress);
-        interval = Math.max(minInterval, interval);
-
+    private void clearDomeEffects(Player p) {
+        p.getActivePotionEffects().forEach(e -> p.removePotionEffect(e.getType()));
+    }
+    private void playWarden(Player p, double progress, int min, int max) {
         soundTimer += 5;
-        if (soundTimer < interval) {
-            return;
-        }
-        soundTimer = 0;
-
-        float volume = (float) (0.65 + progress * 1.35);
-        float pitch = (float) (0.75 - progress * 0.18);
-        player.playSound(player.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, volume, pitch);
-
-        if (progress > 0.65) {
-            player.playSound(player.getLocation(), Sound.ENTITY_WARDEN_AMBIENT,
-                    0.45f + (float) progress * 0.55f, 0.55f);
-        }
+        int interval = Math.max(min, (int)Math.round(max - (max-min)*progress));
+        if (soundTimer < interval) return; soundTimer = 0;
+        p.playSound(p.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, 0.65f + (float)progress*1.35f, 0.75f - (float)progress*0.18f);
+        if (progress > 0.65) p.playSound(p.getLocation(), Sound.ENTITY_WARDEN_AMBIENT, 0.45f + (float)progress*0.55f, 0.55f);
     }
-
-    private void addEffect(Player player, PotionEffectType type, int amplifier, int duration) {
-        player.addPotionEffect(new PotionEffect(
-                type,
-                duration,
-                Math.max(0, amplifier),
-                true,
-                false,
-                true
-        ));
-    }
-
-    private int scaledAmplifier(double progress, int maxAmplifier) {
-        if (maxAmplifier <= 0) {
-            return 0;
-        }
-        return Math.min(maxAmplifier, (int) Math.floor(progress * (maxAmplifier + 1)));
-    }
-
-    private double clamp(double value) {
-        return Math.max(0.0, Math.min(1.0, value));
-    }
+    private void addEffect(Player p, PotionEffectType type, int amp, int duration) { p.addPotionEffect(new PotionEffect(type, duration, Math.max(0, amp), true, false, true)); }
+    private int scaled(double progress, int max) { return max <= 0 ? 0 : Math.min(max, (int)Math.floor(progress*(max+1))); }
+    private double clamp(double v) { return Math.max(0, Math.min(1, v)); }
 }

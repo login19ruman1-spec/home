@@ -1,16 +1,14 @@
 name: DomeGuard
-version: 1.3.0
+version: 1.4.0
 main: ru.domeguard.DomeGuardPlugin
 api-version: '1.21'
 author: DomeGuard
-description: Configurable death dome with independent X/Z axes and Warden-like effects for Purpur/Paper 1.21.4
-
+description: Configurable death dome with X/Z axes, gradual Warden effects, damage immunity and sleep curse.
 commands:
   dome:
     description: Open DomeGuard settings
     usage: /dome
     permission: dome.admin
-
 permissions:
   dome.admin:
     description: Allows managing the death dome
