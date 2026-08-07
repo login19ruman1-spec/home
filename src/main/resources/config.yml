@@ -1,0 +1,27 @@
+dome:
+  enabled: true
+  world: world
+  center-x: 0.0
+  center-z: 0.0
+  radius: 500.0
+  min-y: -64.0
+  max-y: 320.0
+
+damage:
+  # Damage is applied every 10 ticks (0.5 sec).
+  warning-distance: 0.0
+  darkness-distance: 8.0
+  death-distance: 15.0
+
+  # Damage per second at the warning boundary.
+  damage-per-second: 1.0
+
+  # Hard cap for damage per second.
+  max-damage-per-second: 20.0
+
+  nausea-amplifier: 0
+  darkness-amplifier: 0
+
+respawn:
+  # 60 ticks = 3 seconds.
+  delay-ticks: 60
