@@ -1,4 +1,4 @@
-# DomeGuard v1.4.0
+# domeguard-1.5
 
 Purpur/Paper 1.21.4 plugin: configurable elliptical dome (X/Z), Y limits, gradual Warden-style effects, damage immunity selector, sleep curse after crossing the lethal boundary, and Suspicious Stew cure.
 
