@@ -35,12 +35,29 @@ sleep-curse:
 
 respawn:
   delay-ticks: 60
+# ==============================
+# DOME VOID
+# ==============================
+
 void:
+
+  # Включить Void
   enabled: true
+
+  # Название отдельного мира
   world-name: "DomeVoid"
+
+  # Верхняя граница Незера
   nether-roof-y: 127
+
+  # Координата появления внутри Void
   spawn-y: 100
+
+  # Затемнение игрока
   darkness: true
+
+  # Фиолетовые частицы
   particles: true
+
+  # Портал обратно
   return-portal: true
-  return-portal-radius: 2.5
