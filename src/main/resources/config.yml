@@ -35,3 +35,12 @@ sleep-curse:
 
 respawn:
   delay-ticks: 60
+void:
+  enabled: true
+  world-name: "DomeVoid"
+  nether-roof-y: 127
+  spawn-y: 100
+  darkness: true
+  particles: true
+  return-portal: true
+  return-portal-radius: 2.5
