@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.domeguard.managers.CurseManager;
 import ru.domeguard.managers.DamageManager;
 import ru.domeguard.managers.DomeManager;
-import ru.domeguard.world.VoidWorldGenerator;
+import ru.domeguard.VoidWorldGenerator;
 
 public class DomeGuardPlugin extends JavaPlugin {
     
