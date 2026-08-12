@@ -18,6 +18,7 @@ public class RespawnListener implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
         
+        // Если игрок проклят - применяем эффекты заново
         if (curseManager.isPlayerCursed(player.getUniqueId())) {
             curseManager.applyCurseEffects(player);
             curseManager.blockSleep(player);
