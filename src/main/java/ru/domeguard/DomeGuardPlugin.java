@@ -1,41 +1,36 @@
+
 package ru.domeguard;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import ru.domeguard.listeners.BoundaryListener;
-import ru.domeguard.listeners.RespawnListener;
-import ru.domeguard.listeners.BorderPortalListener; // НОВЫЙ импорт
-import ru.domeguard.managers.Cursemanager;
-import ru.domeguard.managers.DamageManager;
-import ru.domeguard.managers.DomeManager;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
-import ru.domeguard.world.VoidWorldGenerator; // НОВЫЙ импорт
+import org.bukkit.plugin.java.JavaPlugin;
+import ru.domeguard.managers.CurseManager;
+import ru.domeguard.managers.DamageManager;
+import ru.domeguard.managers.DomeManager;
+import ru.domeguard.world.VoidWorldGenerator;
 
 public class DomeGuardPlugin extends JavaPlugin {
     
-    private Cursemanager curseManager;
+    private CurseManager curseManager;
     private DamageManager damageManager;
     private DomeManager domeManager;
     
     @Override
     public void onEnable() {
         // --- 1. Инициализация менеджеров ---
-        curseManager = new Cursemanager(this);
-        damageManager = new DamageManager(this);
+        curseManager = new CurseManager(this);
         domeManager = new DomeManager(this);
+        damageManager = new DamageManager(this, domeManager, curseManager);
         
         // --- 2. Регистрация команд ---
-        getCommand("dome").setExecutor(new DomeCommand(this));
+        getCommand("dome").setExecutor(new DomeCommand(domeManager, new DomeMenu(this)));
         
-        // --- 3. РЕГИСТРАЦИЯ СЛУШАТЕЛЕЙ (ВАЖНО!) ---
-        // Существующие слушатели
-        getServer().getPluginManager().registerEvents(new BoundaryListener(this), this);
+        // --- 3. Регистрация слушателей ---
+        getServer().getPluginManager().registerEvents(new BoundaryListener(this, curseManager), this);
         getServer().getPluginManager().registerEvents(new RespawnListener(curseManager), this);
-        
-        // НОВЫЙ слушатель для портала на границе ада
         getServer().getPluginManager().registerEvents(new BorderPortalListener(), this);
         
-        // --- 4. Создание мира Void (если его нет) ---
+        // --- 4. Создание мира Void ---
         createVoidWorld();
         
         getLogger().info("DomeGuard плагин успешно загружен!");
@@ -46,7 +41,6 @@ public class DomeGuardPlugin extends JavaPlugin {
         getLogger().info("DomeGuard плагин выгружен.");
     }
     
-    // Метод для создания мира Void
     private void createVoidWorld() {
         World voidWorld = getServer().getWorld("void_world");
         if (voidWorld == null) {
@@ -56,8 +50,6 @@ public class DomeGuardPlugin extends JavaPlugin {
             creator.generator(new VoidWorldGenerator());
             creator.createWorld();
             getLogger().info("Мир Void создан!");
-        } else {
-            getLogger().info("Мир Void уже существует.");
         }
     }
 }
