@@ -54,6 +54,6 @@ public final class VoidWorldGenerator extends ChunkGenerator {
         return false;
     }
 }
-```
+
 
 
