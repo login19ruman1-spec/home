@@ -1,4 +1,3 @@
-```java
 package ru.domeguard.voidworld;
 
 import org.bukkit.Bukkit;
