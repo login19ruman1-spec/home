@@ -2,6 +2,8 @@ package ru.domeguard.managers;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -15,34 +17,46 @@ public class CurseManager {
         this.plugin = plugin;
     }
     
-    // Проверка, проклят ли игрок
     public boolean isPlayerCursed(UUID uuid) {
         return cursedPlayers.contains(uuid);
     }
     
-    // Применить эффекты проклятия
     public void applyCurseEffects(Player player) {
-        // Здесь ваша логика применения эффектов
-        // Например: наложение эффектов, сообщения и т.д.
-        player.sendMessage("§cВы прокляты!");
+        // Эффекты проклятия
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 200, 1));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 200, 1));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 200, 1));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 200, 1));
+        player.sendMessage("§cВы прокляты! Съешьте тушёный суп, чтобы снять проклятие.");
     }
     
-    // Заблокировать сон
     public void blockSleep(Player player) {
-        // Ваша логика блокировки сна
-        // Например: установка метаданных или флага
-        player.setMetadata("domeguard_cursed", plugin.getServer().getPluginManager().getPlugin("DomeGuard").getPluginMeta());
+        player.setSleepingIgnored(true);
+        player.sendMessage("§cВы не можете спать из-за проклятия!");
     }
     
-    // Добавить игрока в проклятые
+    public void unblockSleep(Player player) {
+        player.setSleepingIgnored(false);
+    }
+    
     public void addCursedPlayer(UUID uuid) {
         cursedPlayers.add(uuid);
-        // Сохранить в players.yml
+        plugin.getLogger().info("Игрок " + uuid + " добавлен в список проклятых.");
     }
     
-    // Удалить игрока из проклятых
     public void removeCursedPlayer(UUID uuid) {
         cursedPlayers.remove(uuid);
-        // Сохранить в players.yml
+        Player player = plugin.getServer().getPlayer(uuid);
+        if (player != null) {
+            unblockSleep(player);
+            player.sendMessage("§aПроклятие снято! Теперь вы можете спать.");
+        }
+        plugin.getLogger().info("Игрок " + uuid + " удалён из списка проклятых.");
+    }
+    
+    public void clearEffects(Player player) {
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
     }
 }
