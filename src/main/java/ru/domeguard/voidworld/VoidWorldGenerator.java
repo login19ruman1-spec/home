@@ -1,3 +1,4 @@
+```java
 package ru.domeguard.voidworld;
 
 import org.bukkit.generator.ChunkGenerator;
@@ -16,5 +17,44 @@ public final class VoidWorldGenerator extends ChunkGenerator {
             ChunkData chunkData
     ) {
         // Полностью пустой мир.
+        // Блоки создаются только самим VoidManager.
+    }
+
+    @Override
+    public boolean shouldGenerateNoise() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldGenerateSurface() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldGenerateBedrock() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldGenerateCaves() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldGenerateDecorations() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldGenerateMobs() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldGenerateStructures() {
+        return false;
     }
 }
+```
+
+
