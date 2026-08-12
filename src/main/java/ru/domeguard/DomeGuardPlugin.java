@@ -1,4 +1,3 @@
-
 package ru.domeguard;
 
 import org.bukkit.World;
@@ -7,7 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.domeguard.managers.CurseManager;
 import ru.domeguard.managers.DamageManager;
 import ru.domeguard.managers.DomeManager;
-import ru.domeguard.VoidWorldGenerator;
+import ru.domeguard.world.VoidWorldGenerator;
 
 public class DomeGuardPlugin extends JavaPlugin {
     
@@ -17,28 +16,29 @@ public class DomeGuardPlugin extends JavaPlugin {
     
     @Override
     public void onEnable() {
-        // --- 1. Инициализация менеджеров ---
+        // Инициализация менеджеров
         curseManager = new CurseManager(this);
         domeManager = new DomeManager(this);
         damageManager = new DamageManager(this, domeManager, curseManager);
         
-        // --- 2. Регистрация команд ---
-        getCommand("dome").setExecutor(new DomeCommand(domeManager, new DomeMenu(this)));
+        // Регистрация команд
+        DomeMenu domeMenu = new DomeMenu(this, domeManager, damageManager);
+        getCommand("dome").setExecutor(new DomeCommand(domeManager, domeMenu));
         
-        // --- 3. Регистрация слушателей ---
+        // Регистрация слушателей
         getServer().getPluginManager().registerEvents(new BoundaryListener(this, curseManager), this);
         getServer().getPluginManager().registerEvents(new RespawnListener(curseManager), this);
-        getServer().getPluginManager().registerEvents(new BorderPortalListener(), this);
+        getServer().getPluginManager().registerEvents(new BorderPortalListener(this), this);
         
-        // --- 4. Создание мира Void ---
+        // Создание мира Void
         createVoidWorld();
         
-        getLogger().info("DomeGuard плагин успешно загружен!");
+        getLogger().info("§aDomeGuard плагин успешно загружен!");
     }
     
     @Override
     public void onDisable() {
-        getLogger().info("DomeGuard плагин выгружен.");
+        getLogger().info("§cDomeGuard плагин выгружен.");
     }
     
     private void createVoidWorld() {
