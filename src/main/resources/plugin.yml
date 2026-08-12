@@ -1,0 +1,14 @@
+name: DomeGuard
+version: 1.5.0
+main: ru.domeguard.DomeGuardPlugin
+api-version: '1.21'
+author: DomeGuard
+description: Configurable death dome with Nether roof void.
+commands:
+  dome:
+    description: Open DomeGuard settings
+    usage: /dome
+    permission: dome.admin
+permissions:
+  dome.admin:
+    default: op

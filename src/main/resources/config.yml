@@ -1,0 +1,55 @@
+dome:
+  enabled: true
+  world: world
+  center-x: 0.0
+  center-z: 0.0
+  radius-x: 500.0
+  radius-z: 500.0
+  radius: 500.0
+  min-y: -64.0
+  max-y: 320.0
+
+damage:
+  warning-distance: 0.0
+  first-phase-end: 10.0
+  darkness-start: 10.0
+  death-distance: 51.0
+  clear-effects-distance: 41.0
+  damage-per-second-at-boundary: 0.5
+  damage-per-second-at-death: 20.0
+  nausea-max-amplifier: 2
+  slowness-max-amplifier: 2
+  weakness-max-amplifier: 1
+  mining-fatigue-max-amplifier: 1
+  darkness-amplifier: 0
+  blindness-max-amplifier: 3
+  warden-sound-min-interval-ticks: 8
+  warden-sound-max-interval-ticks: 40
+
+damage-immune-players: []
+
+sleep-curse:
+  enabled: true
+  trigger-distance: 51.0
+  remove-with-suspicious-stew: true
+
+respawn:
+  delay-ticks: 60
+
+nether-void:
+  enabled: true
+  trigger-y: 127.0
+  world-name: DomeVoid
+  spawn-x: 0.5
+  spawn-y: 100.0
+  spawn-z: 0.5
+  return-portal: true
+  darkness: true
+  particles: true
+  remember-entry: true
+  portal-radius: 2.5
+  platform-radius: 8
+  minimum-y: 20.0
+
+# Настройки тёмной строительной вселенной за верхней границей Незера.
+# Старые параметры nether-void сохраняются для совместимости.
