@@ -1,12 +1,14 @@
+```java
 package ru.domeguard.voidworld;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -28,20 +30,24 @@ public final class VoidListener implements Listener {
         this.netherRoofY = netherRoofY;
     }
 
-    /*
-     * Перехватываем попытку использовать портал
-     * около/выше верхней границы Незера.
+    /**
+     * Игрок пытается использовать портал
+     * выше заданной границы Незера.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPortal(PlayerPortalEvent event) {
 
         Player player = event.getPlayer();
 
-        if (!plugin.getConfig().getBoolean("void.enabled", true)) {
+        if (!plugin.getConfig().getBoolean(
+                "void.enabled",
+                true
+        )) {
             return;
         }
 
-        if (player.getWorld().getEnvironment() != World.Environment.NETHER) {
+        if (player.getWorld().getEnvironment()
+                != World.Environment.NETHER) {
             return;
         }
 
@@ -51,20 +57,31 @@ public final class VoidListener implements Listener {
             return;
         }
 
-        // Не даём Minecraft выполнить обычный переход.
+        /*
+         * Отменяем обычную обработку портала.
+         */
         event.setCancelled(true);
 
-        // Отправляем игрока в Void.
-        voidManager.sendToVoid(player, from);
+        /*
+         * Отправляем игрока в DomeVoid.
+         */
+        voidManager.sendToVoid(
+                player,
+                from
+        );
     }
 
-    /*
-     * Дополнительная защита для телепорта через Nether Portal.
+    /**
+     * Дополнительная защита от обычного
+     * Nether Portal teleport event.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onTeleport(PlayerTeleportEvent event) {
 
-        if (!plugin.getConfig().getBoolean("void.enabled", true)) {
+        if (!plugin.getConfig().getBoolean(
+                "void.enabled",
+                true
+        )) {
             return;
         }
 
@@ -88,11 +105,21 @@ public final class VoidListener implements Listener {
 
         event.setCancelled(true);
 
-        voidManager.sendToVoid(player, from);
+        voidManager.sendToVoid(
+                player,
+                from
+        );
     }
 
-    /*
-     * Проверяем игрока внутри Void.
+    /**
+     * Игрок находится внутри DomeVoid.
+     *
+     * Здесь:
+     * - он может свободно ходить;
+     * - может строить;
+     * - может ломать блоки;
+     * - получает частицы;
+     * - не может упасть в обычный Void.
      */
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
@@ -106,54 +133,119 @@ public final class VoidListener implements Listener {
         Location location = player.getLocation();
 
         /*
-         * Фиолетовые частицы вокруг игрока.
-         */
-        if (plugin.getConfig().getBoolean("void.particles", true)) {
-
-            player.getWorld().spawnParticle(
-                    Particle.PORTAL,
-                    location.clone().add(0, 1, 0),
-                    8,
-                    0.5,
-                    0.5,
-                    0.5,
-                    0.03
-            );
-        }
-
-        /*
-         * Координаты портала обратно.
+         * Если игрок по какой-то причине провалился
+         * слишком низко — возвращаем его на платформу.
          *
-         * Сейчас портал находится около:
-         * X = 0.5
-         * Y = 100
-         * Z = 0.5
+         * Это дополнительная защита.
          */
-        if (plugin.getConfig().getBoolean(
-                "void.return-portal",
-                true
-        )) {
+        int minimumY = plugin.getConfig().getInt(
+                "void.minimum-safe-y",
+                20
+        );
 
-            Location portalLocation = new Location(
+        if (location.getY() <= minimumY) {
+
+            int spawnY = plugin.getConfig().getInt(
+                    "void.spawn-y",
+                    100
+            );
+
+            Location safeLocation = new Location(
                     player.getWorld(),
                     0.5,
-                    plugin.getConfig().getDouble(
-                            "void.spawn-y",
-                            100
-                    ) + 1,
+                    spawnY + 1.0,
                     0.5
             );
 
-            double radius = plugin.getConfig().getDouble(
-                    "void.return-portal-radius",
-                    2.5
+            player.teleport(
+                    safeLocation,
+                    PlayerTeleportEvent.TeleportCause.PLUGIN
             );
 
-            if (location.distanceSquared(portalLocation)
-                    <= radius * radius) {
+            player.setFallDistance(0);
 
-                voidManager.returnPlayer(player);
-            }
+            return;
+        }
+
+        /*
+         * Фиолетовые частицы вокруг игрока.
+         */
+        if (plugin.getConfig().getBoolean(
+                "void.particles",
+                true
+        )) {
+
+            player.getWorld().spawnParticle(
+                    Particle.PORTAL,
+                    location.clone().add(
+                            0,
+                            1,
+                            0
+                    ),
+                    5,
+                    0.35,
+                    0.5,
+                    0.35,
+                    0.02
+            );
         }
     }
+
+    /**
+     * Полностью отключаем Void damage
+     * внутри DomeVoid.
+     *
+     * Игрок не должен умереть от пустоты.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onVoidDamage(EntityDamageEvent event) {
+
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        if (!voidManager.isVoidWorld(player)) {
+            return;
+        }
+
+        if (event.getCause()
+                == EntityDamageEvent.DamageCause.VOID) {
+
+            event.setCancelled(true);
+
+            player.setFallDistance(0);
+        }
+    }
+
+    /**
+     * Дополнительная защита от любых
+     * телепортов через обычный Nether Portal
+     * внутри DomeVoid.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void preventVoidPortalTeleport(
+            PlayerTeleportEvent event
+    ) {
+
+        Player player = event.getPlayer();
+
+        if (!voidManager.isVoidWorld(player)) {
+            return;
+        }
+
+        if (event.getCause()
+                != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL) {
+            return;
+        }
+
+        /*
+         * Не позволяем Minecraft самостоятельно
+         * выкинуть игрока из DomeVoid.
+         *
+         * Наш возврат будет обрабатываться отдельно.
+         */
+        event.setCancelled(true);
+    }
 }
+```
+
