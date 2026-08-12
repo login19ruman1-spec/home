@@ -1,28 +1,35 @@
-package ваш.пакет.world;
+package ru.domeguard;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.generator.WorldInfo;
-import java.util.Random;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 
-public class VoidWorldGenerator extends ChunkGenerator {
+public class BorderPortalListener implements Listener {
     
-    @Override
-    public void generateNoise(WorldInfo worldInfo, Random random, int x, int z, ChunkData chunkData) {
-        // Ничего не генерируем - мир полностью пустой
-    }
+    private static final int BORDER = 5000;
+    private static final String VOID_WORLD_NAME = "void_world";
     
-    @Override
-    public void generateSurface(WorldInfo worldInfo, Random random, int x, int z, ChunkData chunkData) {
-        // Тоже пусто
-    }
-    
-    @Override
-    public Location getFixedSpawnLocation(World world, Random random) {
-        // Спавн в центре мира (0, 64, 0)
-        return new Location(world, 0, 64, 0);
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        World world = player.getWorld();
+        
+        if (!world.getEnvironment().equals(World.Environment.NETHER)) {
+            return;
+        }
+        
+        Location loc = player.getLocation();
+        
+        if (Math.abs(loc.getX()) >= BORDER || Math.abs(loc.getZ()) >= BORDER) {
+            World voidWorld = player.getServer().getWorld(VOID_WORLD_NAME);
+            if (voidWorld != null) {
+                Location voidLoc = new Location(voidWorld, 0, 64, 0);
+                player.teleport(voidLoc);
+                player.sendMessage("§aВы вошли в Бездну!");
+            }
+        }
     }
 }
-
-
