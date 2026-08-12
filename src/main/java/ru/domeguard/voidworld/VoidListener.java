@@ -246,4 +246,4 @@ public final class VoidListener implements Listener {
         event.setCancelled(true);
     }
 }
-```
+
