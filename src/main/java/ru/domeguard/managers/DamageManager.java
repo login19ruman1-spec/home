@@ -1,8 +1,12 @@
 package ru.domeguard.managers;
 
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class DamageManager {
+public class DamageManager implements Listener {
     
     private final JavaPlugin plugin;
     private final DomeManager domeManager;
@@ -14,5 +18,16 @@ public class DamageManager {
         this.curseManager = curseManager;
     }
     
-    // Ваша логика управления уроном
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        
+        Player player = (Player) event.getEntity();
+        
+        // Если игрок проклят - удваиваем урон
+        if (curseManager.isPlayerCursed(player.getUniqueId())) {
+            event.setDamage(event.getDamage() * 2);
+            player.sendMessage("§cПроклятие усиливает урон!");
+        }
+    }
 }
