@@ -1,15 +1,18 @@
-package ru.domeguard;
+package ru.domeguard.managers;
 
-public class DomeMenu {
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class DamageManager {
     
-    private final DomeGuardPlugin plugin;
+    private final JavaPlugin plugin;
     private final DomeManager domeManager;
-    private final DamageManager damageManager;
+    private final CurseManager curseManager;
     
-    // Если у вас такой конструктор:
-    public DomeMenu(DomeGuardPlugin plugin, DomeManager domeManager, DamageManager damageManager) {
+    public DamageManager(JavaPlugin plugin, DomeManager domeManager, CurseManager curseManager) {
         this.plugin = plugin;
         this.domeManager = domeManager;
-        this.damageManager = damageManager;
+        this.curseManager = curseManager;
     }
+    
+    // Ваша логика управления уроном
 }
