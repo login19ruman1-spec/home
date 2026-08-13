@@ -163,4 +163,62 @@ public final class VoidManager {
             );
         }
     }
+
+    // ========== ДОБАВЛЕННЫЕ МЕТОДЫ ДЛЯ VoidListener ==========
+
+    /**
+     * Отправляет игрока в Void мир
+     */
+    public void enter(Player player, Location location) {
+        if (!enabled() || world == null) return;
+        
+        // Сохраняем место возврата
+        returns.put(player.getUniqueId(), location);
+        
+        // Телепортируем в Void мир
+        Location spawn = spawn();
+        player.teleport(spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        
+        // Даём эффекты
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20, 0, false, false));
+        
+        player.sendMessage(ChatColor.GRAY + "Вы вошли в Бездну...");
+    }
+
+    /**
+     * Проверяет, является ли мир Void миром
+     */
+    public boolean isVoidWorld(World world) {
+        return this.world != null && this.world.equals(world);
+    }
+
+    /**
+     * Возвращает игрока из Void мира
+     */
+    public void returnPlayer(Player player) {
+        Location returnLocation = returns.remove(player.getUniqueId());
+        if (returnLocation != null) {
+            player.teleport(returnLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            player.sendMessage(ChatColor.GRAY + "Вы покинули Бездну.");
+        } else {
+            player.sendMessage(ChatColor.RED + "Не найдено место для возврата!");
+        }
+    }
+
+    /**
+     * Проверяет и возвращает игрока, если он в Void мире
+     */
+    public void checkReturn(Player player) {
+        if (isVoidWorld(player.getWorld())) {
+            returnPlayer(player);
+        }
+    }
+
+    /**
+     * Получает Void мир
+     */
+    public World getVoidWorld() {
+        return world;
+    }
 }
