@@ -97,91 +97,73 @@ public final class VoidManager {
     }
 
     private void buildPortal(Location center) {
-        int x = center.getBlockX();
-        int y = center.getBlockY();
-        int z = center.getBlockZ();
 
-        // Отдельный портал на краю стартовой площадки.
-        int px = x + 5;
+    int x = center.getBlockX();
+    int y = center.getBlockY();
+    int z = center.getBlockZ();
 
-        for (int dy = 0; dy <= 3; dy++) {
-            world.getBlockAt(px - 1, y + dy, z).setType(Material.OBSIDIAN, false);
-            world.getBlockAt(px + 1, y + dy, z).setType(Material.OBSIDIAN, false);
-        }
-        for (int dx = -1; dx <= 1; dx++) {
-            world.getBlockAt(px + dx, y, z).setType(Material.OBSIDIAN, false);
-            world.getBlockAt(px + dx, y + 3, z).setType(Material.OBSIDIAN, false);
-        }
-        for (int dy = 1; dy <= 2; dy++) {
-            world.getBlockAt(px, y + dy, z).setType(Material.NETHER_PORTAL, false);
-        }
+    int px = x + 5;
+
+    /*
+     * Рамка портала.
+     */
+    for (int dy = 0; dy <= 3; dy++) {
+
+        world.getBlockAt(
+                px - 1,
+                y + dy,
+                z
+        ).setType(
+                Material.OBSIDIAN,
+                false
+        );
+
+        world.getBlockAt(
+                px + 1,
+                y + dy,
+                z
+        ).setType(
+                Material.OBSIDIAN,
+                false
+        );
     }
 
-    public void enter(Player player, Location from) {
-        if (!enabled()) return;
-        if (world == null) load();
-        if (world == null) return;
+    for (int dx = -1; dx <= 1; dx++) {
 
-        returns.put(player.getUniqueId(), from.clone());
+        world.getBlockAt(
+                px + dx,
+                y,
+                z
+        ).setType(
+                Material.OBSIDIAN,
+                false
+        );
 
-        Location destination = spawn().clone().add(0, 0.1, 0);
-        player.teleport(destination, PlayerTeleportEvent.TeleportCause.PLUGIN);
-        player.setFallDistance(0);
-        player.setFireTicks(0);
-        player.setVelocity(player.getVelocity().setY(0));
-
-        if (plugin.getConfig().getBoolean("nether-void.darkness", true)) {
-            player.addPotionEffect(new PotionEffect(
-                    PotionEffectType.DARKNESS,
-                    Integer.MAX_VALUE,
-                    0,
-                    false,
-                    false,
-                    false
-            ));
-        }
+        world.getBlockAt(
+                px + dx,
+                y + 3,
+                z
+        ).setType(
+                Material.OBSIDIAN,
+                false
+        );
     }
 
-    public void checkReturn(Player player) {
-        if (!isVoidWorld(player.getWorld())) return;
+    /*
+     * Внутри НЕ ставим NETHER_PORTAL.
+     *
+     * Используем END_GATEWAY как визуальную
+     * сердцевину нашего кастомного портала.
+     */
+    for (int dy = 1; dy <= 2; dy++) {
 
-        player.setFallDistance(0);
-
-        double minimumY = plugin.getConfig().getDouble("nether-void.minimum-y", 20.0);
-        if (player.getLocation().getY() <= minimumY) {
-            player.teleport(spawn(), PlayerTeleportEvent.TeleportCause.PLUGIN);
-            player.setFallDistance(0);
-            return;
-        }
-
-        if (plugin.getConfig().getBoolean("nether-void.particles", true)) {
-            world.spawnParticle(org.bukkit.Particle.PORTAL,
-                    player.getLocation().add(0, 1, 0), 4, .25, .4, .25, .02);
-        }
-
-        Location center = spawn().clone().add(5, 1, 0);
-        double radius = plugin.getConfig().getDouble("nether-void.portal-radius", 2.5);
-        if (player.getLocation().distanceSquared(center) > radius * radius) return;
-
-        returnPlayer(player);
-    }
-
-    public void returnPlayer(Player player) {
-        Location back = returns.remove(player.getUniqueId());
-        if (back == null) {
-            back = Bukkit.getWorlds().get(0).getSpawnLocation();
-        }
-
-        player.removePotionEffect(PotionEffectType.DARKNESS);
-        player.setFallDistance(0);
-        player.teleport(back, PlayerTeleportEvent.TeleportCause.PLUGIN);
-    }
-
-    public boolean isVoidWorld(World world) {
-        return this.world != null && this.world.equals(world);
-    }
-
-    public World getWorld() {
-        return world;
+        world.getBlockAt(
+                px,
+                y + dy,
+                z
+        ).setType(
+                Material.END_GATEWAY,
+                false
+        );
     }
 }
