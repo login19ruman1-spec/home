@@ -97,73 +97,70 @@ public final class VoidManager {
     }
 
     private void buildPortal(Location center) {
+        int x = center.getBlockX();
+        int y = center.getBlockY();
+        int z = center.getBlockZ();
 
-    int x = center.getBlockX();
-    int y = center.getBlockY();
-    int z = center.getBlockZ();
+        int px = x + 5;
 
-    int px = x + 5;
+        /*
+         * Рамка портала.
+         */
+        for (int dy = 0; dy <= 3; dy++) {
+            world.getBlockAt(
+                    px - 1,
+                    y + dy,
+                    z
+            ).setType(
+                    Material.OBSIDIAN,
+                    false
+            );
 
-    /*
-     * Рамка портала.
-     */
-    for (int dy = 0; dy <= 3; dy++) {
+            world.getBlockAt(
+                    px + 1,
+                    y + dy,
+                    z
+            ).setType(
+                    Material.OBSIDIAN,
+                    false
+            );
+        }
 
-        world.getBlockAt(
-                px - 1,
-                y + dy,
-                z
-        ).setType(
-                Material.OBSIDIAN,
-                false
-        );
+        for (int dx = -1; dx <= 1; dx++) {
+            world.getBlockAt(
+                    px + dx,
+                    y,
+                    z
+            ).setType(
+                    Material.OBSIDIAN,
+                    false
+            );
 
-        world.getBlockAt(
-                px + 1,
-                y + dy,
-                z
-        ).setType(
-                Material.OBSIDIAN,
-                false
-        );
-    }
+            world.getBlockAt(
+                    px + dx,
+                    y + 3,
+                    z
+            ).setType(
+                    Material.OBSIDIAN,
+                    false
+            );
+        }
 
-    for (int dx = -1; dx <= 1; dx++) {
-
-        world.getBlockAt(
-                px + dx,
-                y,
-                z
-        ).setType(
-                Material.OBSIDIAN,
-                false
-        );
-
-        world.getBlockAt(
-                px + dx,
-                y + 3,
-                z
-        ).setType(
-                Material.OBSIDIAN,
-                false
-        );
-    }
-
-    /*
-     * Внутри НЕ ставим NETHER_PORTAL.
-     *
-     * Используем END_GATEWAY как визуальную
-     * сердцевину нашего кастомного портала.
-     */
-    for (int dy = 1; dy <= 2; dy++) {
-
-        world.getBlockAt(
-                px,
-                y + dy,
-                z
-        ).setType(
-                Material.END_GATEWAY,
-                false
-        );
+        /*
+         * Внутри НЕ ставим NETHER_PORTAL.
+         *
+         * Используем END_GATEWAY как визуальную
+         * сердцевину нашего кастомного портала.
+         */
+        for (int dy = 1; dy <= 2; dy++) {
+            world.getBlockAt(
+                    px,
+                    y + dy,
+                    z
+            ).setType(
+                    Material.END_GATEWAY,
+                    false
+            );
+        }
     }
 }
